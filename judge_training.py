@@ -63,6 +63,9 @@ device = (
     if torch.backends.mps.is_available()
     else "cpu"
 )
+
+
+# MODEL
 class Judge(nn.Module):
     def __init__(self):
         super().__init__()
@@ -89,7 +92,7 @@ class Judge(nn.Module):
         return x
 
     
-# Initialize the model and optimizer
+# initialize the model and optimizer
 model = Judge().to(device)
 learning_rate = 1e-4
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
@@ -98,32 +101,32 @@ total_batches = 150000  # Total number of batches to train on
 criterion = nn.CrossEntropyLoss()
 
 
-# Load the data
+# load data
 train_loader, test_loader = load_data()
 
 
-# Training loop
+# training loop
 
 model.train()
 total_loss = 0
 batch_count = 0
 
-for epoch in range(total_batches // len(train_loader) + 1):  # Number of epochs
+for epoch in range(total_batches // len(train_loader) + 1):  # number of epochs
     for images, labels in train_loader:
-        # Stop training after total_batches
+        # stop training after total_batches
         if batch_count >= total_batches:
             break
         
-        # Generate the masks and apply them to the images
+        # generate and apply masks
         masked_images = torch.stack([generate_mask(image, num_pixels=6) for image in images])
         masked_images = masked_images.to(device)
         labels = labels.to(device)
 
-        # Forward pass
+        # forward pass
         outputs = model(masked_images)
         loss = criterion(outputs, labels)
 
-        # Backward pass and optimization
+        # backward pass and optimization
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -135,34 +138,5 @@ for epoch in range(total_batches // len(train_loader) + 1):  # Number of epochs
     
 
 
-# Save the trained model
+# save the trained model
 torch.save(model.state_dict(), 'model.pth')
-
-
-def train_model(total_batches=90000, learning_rate=1e-4, batch_size=128):
-    model = Judge().to(device)
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-    criterion = nn.CrossEntropyLoss()
-
-    # Load the data
-    train_loader, test_loader = load_data()
-
-    # Training loop
-    model.train()
-    total_loss = 0
-    batch_count = 0
-
-    for epoch in range(total_batches // len(train_loader) + 1):  # Number of epochs
-        for images, labels in train_loader:
-            # Stop training after total_batches
-            if batch_count >= total_batches:
-                break
-            
-            # Generate the masks and apply them to the images
-            masked_images = torch.stack([generate_mask(image, num_pixels=6) for image in images])
-            masked_images = masked_images.to(device)
-            labels = labels.to(device)
-
-            # ... rest of the training code ...
-
-    return model
