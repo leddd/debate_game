@@ -27,6 +27,7 @@ def load_data():
 
     return train_loader, test_loader
 
+train_loader, test_loader = load_data()
 
 #MASK
 
@@ -52,23 +53,34 @@ def generate_mask(image, num_pixels):
     # apply mask to image
     masked_image = image * mask
 
-    return masked_image
+    return mask, masked_image
 
-# #TEST
+# # #TEST
 
-# # Get some images from the test dataset
-# images = test_data.data[:5].float() / 255  # Normalize the images to [0, 1]
+# # get a batch of data
+# images, labels = next(iter(train_loader))
 
-# # Apply the generate_mask function to each image
-# for i, image in enumerate(images):
-#     masked_image = generate_mask(image, num_pixels=6)
+# # for each of the first 5 images in the batch
+# for i in range(5):
+#     # select the image
+#     image = images[i]
 
-#     # Plot the original and masked images
-#     plt.figure(figsize=(8, 4))
-#     plt.subplot(1, 2, 1)
-#     plt.imshow(image.cpu().numpy(), cmap='gray')
-#     plt.title('Original Image')
-#     plt.subplot(1, 2, 2)
-#     plt.imshow(masked_image.cpu().numpy(), cmap='gray')
-#     plt.title('Masked Image')
+#     # generate a mask for the image
+#     mask, masked_image = generate_mask(image, num_pixels=6)
+
+#     # plot the original, mask and masked images
+#     fig, ax = plt.subplots(1, 3)
+
+#     # original image
+#     ax[0].imshow(image.squeeze().numpy(), cmap='gray')
+#     ax[0].set_title('Original Image')
+
+#     # mask
+#     ax[1].imshow(mask.squeeze().numpy(), cmap='gray')
+#     ax[1].set_title('Mask')
+
+#     # masked image
+#     ax[2].imshow(masked_image.squeeze().numpy(), cmap='gray')
+#     ax[2].set_title('Masked Image')
+
 #     plt.show()

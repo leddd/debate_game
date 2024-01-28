@@ -53,7 +53,8 @@ def generate_mask(image, num_pixels):
     # apply mask to image
     masked_image = image * mask
 
-    return masked_image
+    return mask, masked_image
+
 
 # get cpu, gpu or mps device for training.
 device = (
@@ -69,7 +70,7 @@ device = (
 class Judge(nn.Module):
     def __init__(self):
         super().__init__()
-        self.conv1 = nn.Conv2d(1, 64, kernel_size=3, stride=1, padding=1)
+        self.conv1 = nn.Conv2d(2, 64, kernel_size=3, stride=1, padding=1) #2 input planes
         self.conv2 = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1)
         self.conv3 = nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1)
         self.fc1 = nn.Linear(3*3*256, 512)
@@ -118,12 +119,16 @@ for epoch in range(total_batches // len(train_loader) + 1):  # number of epochs
             break
         
         # generate and apply masks
-        masked_images = torch.stack([generate_mask(image, num_pixels=6) for image in images])
-        masked_images = masked_images.to(device)
+        masks, masked_images = zip(*[generate_mask(image, num_pixels=6) for image in images])
+        masks = torch.stack(masks).to(device)
+        masked_images = torch.stack(masked_images).to(device) 
         labels = labels.to(device)
 
+        # stack masks and masked_images along the channel dimension
+        inputs = torch.cat((masks, masked_images), dim=1)
+
         # forward pass
-        outputs = model(masked_images)
+        outputs = model(inputs)
         loss = criterion(outputs, labels)
 
         # backward pass and optimization
