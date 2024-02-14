@@ -15,7 +15,7 @@ device = (
 
 # load the trained model
 model = Judge()
-model.load_state_dict(torch.load('model.pth'))
+model.load_state_dict(torch.load('judge.pth'))
 model.to(device)
 model.eval()
 
