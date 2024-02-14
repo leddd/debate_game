@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 from copy import deepcopy
 from math import *
+
 device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
 
 
@@ -257,6 +258,9 @@ def play_game(model, test_loader, num_rollouts):
     image, label_honest = random.choice(test_loader.dataset)
     image = image.to(device)
 
+    # convert grayscale image to RGB
+    image_rgb = np.stack((image.cpu().numpy().squeeze(),)*3, axis=-1)
+
     # initialize
     game = Game(image, label_honest, label_honest)  # liar's label is initially the same as honest's
 
@@ -274,32 +278,50 @@ def play_game(model, test_loader, num_rollouts):
     print(f"Honest claims: {label_honest}")
     print(f"Liar claims: {game.label_liar}")
 
+    # initialize plot
+    fig, ax = plt.subplots()
+
     #game loop
     while not game.is_over():
         current_player = 'liar' if game.turn == 0 else 'honest'
         print(f"It's {current_player}'s turn")
         
         if game.turn == 0:  # liar's turn
-            # liar performs rollouts using MCTS and selects the move with the highest PUCT score
+            # liar performs 10k rollouts using MCTS and selects the move with the highest PUCT score
             for _ in range(num_rollouts):
                 mcts.explore()
             next_node, action, _ = mcts.next()
             game.step(action)
             mcts = next_node
         else:  # honest's turn
-            # honest player performs rollouts using MCTS and selects the move with the highest PUCT score
+            # honest player performs 10k rollouts using MCTS and selects the move with the highest PUCT score
             for _ in range(num_rollouts):
                 mcts.explore()
             next_node, action, _ = mcts.next()
             game.step(action)
             mcts = next_node
-            
+
+        # highlight the selected pixel
+        if game.turn == 0:  # liar's turn
+            image_rgb[action] = [255, 0, 0]  # red
+        else:  # honest's turn
+            image_rgb[action] = [0, 0, 255]  # blue
+
+        # update plot
+        ax.clear()
+        ax.imshow(image_rgb)
+        ax.set_title(f"It's {current_player}'s turn")
+        plt.pause(0.1)  # pause a bit so that the plot gets updated
+
     # determine the winner
     winner = game.get_winner(model)
 
     print(f"Judge's choice: {winner}")
     print(f"Game ended. Winner: {winner}")
+    plt.show()
+
     return winner
 
+
 # play the game, 3rd input is the number of rollouts
-play_game(model, test_loader, 10000)
+play_game(model, train_loader, 5000)
