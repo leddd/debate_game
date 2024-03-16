@@ -8,4 +8,5 @@ The game environment and MCTS are working correctly, with a corresponding GUI. T
 Thanks to the following blogs for their breakdowns of the AlphaZero paper:
 
 https://medium.com/@_michelangelo_/alphazero-for-dummies-5bcc713fc9c6
+
 https://jonathan-hui.medium.com/monte-carlo-tree-search-mcts-in-alphago-zero-8a403588276a
